@@ -1,14 +1,6 @@
 import os
-import sys
-import pandas as pd
 import numpy as np
-import math
-import datetime
-import operator
-from copy import deepcopy
-from collections import Counter, ChainMap, defaultdict, deque
-from itertools import cycle
-from functools import reduce
+from itertools import product
 
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 os.chdir(CURRENT_DIRECTORY)
@@ -23,7 +15,25 @@ def read_input_text():
 
 
 def part_a():
-    pass
+    locks = []
+    keys = []
+
+    for obj in read_input_text().split("\n\n"):
+        matrix = np.array([list(x) for x in obj.split("\n")])
+        heights = (matrix=="#").sum(axis=0)
+        if obj[0] == ".":
+            keys.append(heights)
+        else:
+            locks.append(heights)
+
+    ans = 0
+    for key, lock in product(keys,locks):
+        ans += ((key+lock) < 8).all()
+
+    print(ans)
+
+
+part_a()
 
 def part_b():
     pass

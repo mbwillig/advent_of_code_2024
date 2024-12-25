@@ -1,14 +1,6 @@
 import os
-import sys
-import pandas as pd
-import numpy as np
-import math
-import datetime
-import operator
-from copy import deepcopy
-from collections import Counter, ChainMap, defaultdict, deque
-from itertools import cycle
-from functools import reduce
+from collections import defaultdict
+from functools import reduce, cache
 
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 os.chdir(CURRENT_DIRECTORY)
@@ -23,7 +15,44 @@ def read_input_text():
 
 
 def part_a():
-    pass
+    graph = defaultdict(set)
+    for line in read_input_lines():
+        a,b = line.split("-")
+        graph[a].add(b)
+        graph[b].add(a)
+
+    ans = set()
+    for node in [x for x in graph.keys() if x[0] == 't']:
+        for nodeb in graph[node]:
+            for nodec in graph[nodeb]:
+                if node in graph[nodec]:
+                    ans.add(tuple(sorted([node,nodeb,nodec])))
+
+    print(len(ans))
+
+part_a()
 
 def part_b():
-    pass
+    graph = defaultdict(set)
+    for line in read_input_lines():
+        a, b = line.split("-")
+        graph[a].add(b)
+        graph[b].add(a)
+
+    all_nodes = set(graph.keys())
+
+    @cache #function calls explode because each group of n can be made in n! orders
+    def growgroup(grp):
+        candidates = reduce(lambda x, y: x & graph[y],
+                            grp,
+                            all_nodes) # candidate nodes have a connection to all grp members
+        if not candidates: #group is at max size
+            return grp
+
+        return max((growgroup(tuple(sorted(list(grp) + [candidate])))
+                    for candidate in candidates),
+                   key = len) #we take the best path
+
+    print(",".join(sorted(list(growgroup(tuple())))))
+
+part_b()

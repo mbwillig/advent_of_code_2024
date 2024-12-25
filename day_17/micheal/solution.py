@@ -3,12 +3,6 @@ import sys
 import pandas as pd
 import numpy as np
 import math
-import datetime
-import operator
-from copy import deepcopy
-from collections import Counter, ChainMap, defaultdict, deque
-from itertools import cycle
-from functools import reduce
 
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 os.chdir(CURRENT_DIRECTORY)
@@ -52,7 +46,7 @@ class OpcodeInterpreter():
             case 5:
                 self.result.append(self.combo(operant) %8)
                 if self.part_b:
-                    n = len(self.result) -1
+                    n = len(self.result) - 1
                     assert n < len(self.instructions)
                     assert self.result[n] == self.instructions[n]
             case 6:
@@ -80,28 +74,31 @@ def part_a():
 part_a()
 def part_b():
 
-    instructions = [2,4,1,5,7,5,1,6,0,3,4,1,5,5,3,0]
+    instructions = [2,4, # b = a%8
+                    1,5, # b %= 5
+                    7,5, # c = a / (2**b)
+                    1,6, # b %= 6
+                    0,3, # a//=8
+                    4,1, # b ^= c
+                    5,5, # yield b%8
+                    3,0] # loop
 
-    x = 0
-    digit = 1
-    while True:
-        try:
-            oci = OpcodeInterpreter(x, 0, 0, instructions, part_b= True)
+    def solvenext(ix=0, digit = 0 ):
+        if digit == len(instructions):
+            return ix/8
+
+        best = float("inf")
+        for ix in range(ix, ix+8):
+            oci = OpcodeInterpreter(ix, 0, 0, instructions)
             oci.run()  # we append
-        except AssertionError:
-            if instructions[-(digit):] == oci.result[-(digit):]:
-                print(x,oci.result, "*****")
-                x *=8
-                digit += 1
-            else:
-                print(x, oci.result)
-            if x > 100:
-                return
-            x += 1
+            assert oci.result[::-1][:digit] == instructions[::-1][:digit], (oci.result[::-1][:digit], instructions[::-1][:digit])
+            if oci.result[-(digit+1)] == instructions[-(digit+1)]:
+                ans = solvenext(ix * 8, digit+1)
+                best = min(ans, best)
 
-            continue
-        return
+        return best
 
+    print(solvenext())
 
 
 part_b()
